@@ -1,0 +1,262 @@
+{
+ "cells": [
+  {
+   "cell_type": "code",
+   "execution_count": 59,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "import collections\n",
+    "import operator"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 186,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "#useful dictionaries\n",
+    "nucleotide_pairs={\n",
+    "    \"A\":\"T\",\n",
+    "    \"T\":\"A\",\n",
+    "    \"G\":\"C\",\n",
+    "    \"C\":\"G\"\n",
+    "}\n",
+    "\n",
+    "rna_codon_dict = {\n",
+    " 'AAA': 'K',\n",
+    " 'AAC': 'N',\n",
+    " 'AAG': 'K',\n",
+    " 'AAU': 'N',\n",
+    " 'ACA': 'T',\n",
+    " 'ACC': 'T',\n",
+    " 'ACG': 'T',\n",
+    " 'ACU': 'T',\n",
+    " 'AGA': 'R',\n",
+    " 'AGC': 'S',\n",
+    " 'AGG': 'R',\n",
+    " 'AGU': 'S',\n",
+    " 'AUA': 'I',\n",
+    " 'AUC': 'I',\n",
+    " 'AUG': 'M',\n",
+    " 'AUU': 'I',\n",
+    " 'CAA': 'Q',\n",
+    " 'CAC': 'H',\n",
+    " 'CAG': 'Q',\n",
+    " 'CAU': 'H',\n",
+    " 'CCA': 'P',\n",
+    " 'CCC': 'P',\n",
+    " 'CCG': 'P',\n",
+    " 'CCU': 'P',\n",
+    " 'CGA': 'R',\n",
+    " 'CGC': 'R',\n",
+    " 'CGG': 'R',\n",
+    " 'CGU': 'R',\n",
+    " 'CUA': 'L',\n",
+    " 'CUC': 'L',\n",
+    " 'CUG': 'L',\n",
+    " 'CUU': 'L',\n",
+    " 'GAA': 'E',\n",
+    " 'GAC': 'D',\n",
+    " 'GAG': 'E',\n",
+    " 'GAU': 'D',\n",
+    " 'GCA': 'A',\n",
+    " 'GCC': 'A',\n",
+    " 'GCG': 'A',\n",
+    " 'GCU': 'A',\n",
+    " 'GGA': 'G',\n",
+    " 'GGC': 'G',\n",
+    " 'GGG': 'G',\n",
+    " 'GGU': 'G',\n",
+    " 'GUA': 'V',\n",
+    " 'GUC': 'V',\n",
+    " 'GUG': 'V',\n",
+    " 'GUU': 'V',\n",
+    " 'UAA': 'Stop',\n",
+    " 'UAC': 'Y',\n",
+    " 'UAG': 'Stop',\n",
+    " 'UAU': 'Y',\n",
+    " 'UCA': 'S',\n",
+    " 'UCC': 'S',\n",
+    " 'UCG': 'S',\n",
+    " 'UCU': 'S',\n",
+    " 'UGA': 'Stop',\n",
+    " 'UGC': 'C',\n",
+    " 'UGG': 'W',\n",
+    " 'UGU': 'C',\n",
+    " 'UUA': 'L',\n",
+    " 'UUC': 'F',\n",
+    " 'UUG': 'L',\n",
+    " 'UUU': 'F'}"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 33,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "def count_ACGT_nucleotides(dna):\n",
+    "    counts = collections.Counter(dna)\n",
+    "    return ' '.join(map(str, [counts['A'], counts[\"C\"], counts[\"G\"], counts[\"T\"]]))\n",
+    "\n",
+    "def DNA_to_RNA(dna):\n",
+    "    return dna.replace(\"T\",\"U\")\n",
+    "\n",
+    "def DNA_reverse_complement(dna):\n",
+    "    return \"\".join(map(lambda c: nucleotide_pairs[c], dna[::-1]))"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 93,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [],
+   "source": [
+    "def calculate_GC_percentage(dna):\n",
+    "    counts = collections.Counter(dna)\n",
+    "    return (counts[\"G\"]+counts[\"C\"])/(counts[\"G\"]+counts[\"C\"]+ counts[\"A\"]+counts[\"T\"])\n",
+    "\n",
+    "def read_content_and_find_dna_with_hightest_GC_content(file_path):\n",
+    "    dna_dict = {}\n",
+    "    k = \"\"\n",
+    "    value = \"\"\n",
+    "    with open(file_path) as f:\n",
+    "        for line in f:\n",
+    "            if line.startswith(\">\"):\n",
+    "                dna_dict[k]=value\n",
+    "                value=\"\"\n",
+    "                k = line[1:-1]\n",
+    "            else:\n",
+    "                value = value+line\n",
+    "        dna_dict[k]=value\n",
+    "    dna_dict.pop('', None)\n",
+    "\n",
+    "    gc_content_dict = {k: calculate_GC_percentage(v) for k,v in dna_dict.items()}\n",
+    "    print(gc_content_dict)\n",
+    "    maxi = max(gc_content_dict.items(), key=operator.itemgetter(1))[0]\n",
+    "    return(maxi+\" \"+str(gc_content_dict[maxi]*100))\n",
+    "\n",
+    "def compare_characters(a, b):\n",
+    "    if (a==b):\n",
+    "        return 0\n",
+    "    else:\n",
+    "        return 1\n",
+    "    \n",
+    "def counting_point_mutations(dna1, dna2):\n",
+    "    return sum(compare_characters(a,b) for a,b in zip(dna1,dna2))\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 115,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [],
+   "source": [
+    "def find_dna_motif(dna, motif):\n",
+    "    matches = []\n",
+    "    match = dna.find(motif)\n",
+    "    while(dna.find(motif,match+1)!=-1):\n",
+    "        matches.append(match+1)\n",
+    "        match = dna.find(motif,match+1)\n",
+    "    if match!=-1:\n",
+    "        matches.append(match+1)\n",
+    "    return \" \".join(map(str,matches))\n",
+    "    "
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 150,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "def connected(a,b,k=3):\n",
+    "    if a==b:\n",
+    "        return False\n",
+    "    return (a[-k:] == b[:k])\n",
+    "\n",
+    "def read_graph(file_path):\n",
+    "    dna_dict = {}\n",
+    "    k = \"\"\n",
+    "    value = \"\"\n",
+    "    with open(file_path) as f:\n",
+    "        for line in f:\n",
+    "            if line.startswith(\">\"):\n",
+    "                dna_dict[k]=value\n",
+    "                value=\"\"\n",
+    "                k = line[1:-1]\n",
+    "            else:\n",
+    "                value = value+line[:-1]\n",
+    "        dna_dict[k]=value\n",
+    "    dna_dict.pop('', None)\n",
+    "    return dna_dict\n",
+    "\n",
+    "def check_graph(file_path):\n",
+    "    nodes_dict = read_graph(file_path)\n",
+    "    possible_branches = [(a,b,connected(nodes_dict[a],nodes_dict[b])) for b in nodes_dict for a in nodes_dict]\n",
+    "    \n",
+    "    return \" \".join([print(a, b) for a,b,c in possible_branches if c==True])"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 212,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [],
+   "source": [
+    "def RNA_to_protein(rna):\n",
+    "    codons = []\n",
+    "    for i,s in enumerate(rna):\n",
+    "        if i%3==0:\n",
+    "            codons.append(rna[i-3:i])\n",
+    "    codons.append(rna[i-2:i+1])\n",
+    "\n",
+    "    protein = \"\"\n",
+    "    for codon in codons[1:]:\n",
+    "        if rna_codon_dict[codon] == \"Stop\":\n",
+    "            break\n",
+    "        protein+=rna_codon_dict[codon]\n",
+    "\n",
+    "    return protein"
+   ]
+  }
+ ],
+ "metadata": {
+  "anaconda-cloud": {},
+  "kernelspec": {
+   "display_name": "Python [conda root]",
+   "language": "python",
+   "name": "conda-root-py"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.5.2"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 1
+}
